@@ -14,6 +14,7 @@ A full-featured e-commerce storefront built with **React + Vite + TypeScript + T
 | State | Zustand v5 (with `persist` middleware) |
 | HTTP | Axios (centralized instance with interceptors) |
 | Build | Vite 8 |
+lu
 
 ---
 
