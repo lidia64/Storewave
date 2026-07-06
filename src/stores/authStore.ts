@@ -37,7 +37,9 @@ export const useAuthStore = create<AuthState>()(
       register: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
-          const { data } = await authService.register(email, password);
+          await authService.register(email, password);
+          // Auto-login after successful registration
+          const { data } = await authService.login(email, password);
           localStorage.setItem('token', data.token);
           set({ user: data.user, token: data.token, isLoading: false });
         } catch (err: any) {

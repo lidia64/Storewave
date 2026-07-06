@@ -32,10 +32,13 @@ export default function ProductsPage() {
     setError('');
     try {
       const [prodRes, catRes] = await Promise.all([
-        productService.getAll(),
+        categoryId ? productService.getByCategory(categoryId) : productService.getAll(),
         categoryService.getAll(),
       ]);
-      setProducts(prodRes.data.data.all);
+      const prods = categoryId
+        ? (prodRes.data as any).data
+        : (prodRes.data as any).data.all;
+      setProducts(prods ?? []);
       setCategories(catRes.data.data);
     } catch {
       setError('Failed to load products. Please try again.');
@@ -44,17 +47,16 @@ export default function ProductsPage() {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [categoryId]);
 
   const filtered = useMemo(() => {
     let list = [...products];
     if (search) list = list.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
-    if (categoryId) list = list.filter((p) => p.categoryId === categoryId);
     if (sort === 'price-asc') list.sort((a, b) => a.price - b.price);
     else if (sort === 'price-desc') list.sort((a, b) => b.price - a.price);
     else if (sort === 'name-asc') list.sort((a, b) => a.name.localeCompare(b.name));
     return list;
-  }, [products, search, categoryId, sort]);
+  }, [products, search, sort]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
