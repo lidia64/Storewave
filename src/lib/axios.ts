@@ -8,6 +8,15 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
+
+  const isAuthUserRequest =
+    config.url?.includes('/api/auth/users/register') ||
+    config.url?.includes('/api/auth/users/login');
+
+  if (isAuthUserRequest && config.data && typeof config.data === 'object') {
+    config.data = { ...config.data, role: 'USER' };
+  }
+
   return config;
 });
 
@@ -16,8 +25,10 @@ api.interceptors.response.use(
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      localStorage.removeItem('auth-store');
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(err);
   }

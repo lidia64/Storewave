@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeft, CheckCircle2, Minus, Plus, ShoppingCart, Star } from 'lucide-react';
 import { productService } from '../services/product.service';
 import { useCartStore } from '../stores/cartStore';
 import { useAuthStore } from '../stores/authStore';
 import type { Product, Variant } from '../types';
 import Spinner from '../components/ui/Spinner';
 import ErrorMessage from '../components/ui/ErrorMessage';
+import { getProductImage } from '../lib/images';
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -49,7 +51,7 @@ export default function ProductDetailPage() {
     setCartMsg('');
     try {
       await addItem(product.id, selectedVariant?.id ?? '', qty);
-      setCartMsg('Added to cart! 🛒');
+      setCartMsg('Added to cart.');
     } catch (err: any) {
       setCartMsg(err.response?.data?.message || 'Failed to add to cart.');
     } finally {
@@ -57,109 +59,120 @@ export default function ProductDetailPage() {
     }
   };
 
-  if (loading) return <Spinner message="Loading product…" />;
+  if (loading) return <Spinner message="Loading product..." />;
   if (error || !product) return <ErrorMessage message={error || 'Product not found.'} />;
 
   const displayPrice = selectedVariant?.price ?? product.price;
+  const mainImage = getProductImage(product);
+  const isSuccess = cartMsg === 'Added to cart.';
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <button onClick={() => navigate(-1)} className="text-sm text-indigo-600 hover:underline mb-6 block">
-        ← Back
-      </button>
+    <div className="min-h-screen bg-stone-50">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <button
+          onClick={() => navigate(-1)}
+          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#a85432] hover:underline"
+        >
+          <ArrowLeft size={17} />
+          Back
+        </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        {/* Images */}
-        <div className="space-y-3">
-          <div className="aspect-square bg-gray-50 rounded-2xl overflow-hidden border border-gray-100">
-            {product.images?.[0]?.url ? (
-              <img src={product.images[0].url} alt={product.name} className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-300 text-7xl">🛍️</div>
-            )}
-          </div>
-          {product.images && product.images.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto">
-              {product.images.slice(1).map((img, i) => (
-                <img key={i} src={img.url} alt="" className="w-16 h-16 object-cover rounded-lg border border-gray-200 flex-shrink-0" />
-              ))}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <div className="space-y-3">
+            <div className="aspect-square overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm">
+              <img src={mainImage} alt={product.name} className="h-full w-full object-cover" />
             </div>
-          )}
-        </div>
-
-        {/* Info */}
-        <div>
-          {product.category?.name && (
-            <span className="text-xs text-indigo-500 font-medium uppercase tracking-wide">
-              {product.category.name}
-            </span>
-          )}
-          <h1 className="text-2xl font-bold text-gray-800 mt-1">{product.name}</h1>
-          {product.brand && <p className="text-sm text-gray-400 mt-1">{product.brand}</p>}
-
-          {avgRating !== null && avgRating > 0 && (
-            <p className="text-sm text-yellow-500 mt-1">★ {avgRating.toFixed(1)}</p>
-          )}
-
-          <p className="text-3xl font-bold text-indigo-600 mt-4">${displayPrice.toFixed(2)}</p>
-
-          {product.description && (
-            <p className="text-gray-600 text-sm mt-4 leading-relaxed">{product.description}</p>
-          )}
-
-          {/* Variants */}
-          {product.variants && product.variants.length > 0 && (
-            <div className="mt-5">
-              <p className="text-sm font-medium text-gray-700 mb-2">Select Variant</p>
-              <div className="flex flex-wrap gap-2">
-                {product.variants.map((v) => (
-                  <button
-                    key={v.id}
-                    onClick={() => setSelectedVariant(v)}
-                    className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
-                      selectedVariant?.id === v.id
-                        ? 'border-indigo-600 bg-indigo-50 text-indigo-700'
-                        : 'border-gray-300 text-gray-600 hover:border-indigo-400'
-                    }`}
-                  >
-                    {[v.color, v.size].filter(Boolean).join(' / ') || v.sku || v.id.slice(-6)}
-                    {v.price && ` — $${v.price.toFixed(2)}`}
-                  </button>
+            {product.images && product.images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {product.images.map((img, i) => (
+                  <img key={`${img.url}-${i}`} src={img.url} alt="" className="h-20 w-20 flex-shrink-0 rounded-lg border border-stone-200 object-cover" />
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Quantity */}
-          <div className="mt-5 flex items-center gap-3">
-            <p className="text-sm font-medium text-gray-700">Qty</p>
-            <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
-              <button
-                onClick={() => setQty((q) => Math.max(1, q - 1))}
-                className="px-3 py-1.5 text-gray-600 hover:bg-gray-100"
-              >−</button>
-              <span className="px-4 py-1.5 text-sm font-medium">{qty}</span>
-              <button
-                onClick={() => setQty((q) => Math.min(product.stock, q + 1))}
-                className="px-3 py-1.5 text-gray-600 hover:bg-gray-100"
-              >+</button>
-            </div>
-            <span className="text-xs text-gray-400">{product.stock} in stock</span>
+            )}
           </div>
 
-          {cartMsg && (
-            <p className={`text-sm mt-3 ${cartMsg.includes('🛒') ? 'text-green-600' : 'text-red-500'}`}>
-              {cartMsg}
-            </p>
-          )}
+          <div className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm sm:p-7">
+            {product.category?.name && (
+              <span className="text-xs font-bold uppercase tracking-wide text-[#a85432]">
+                {product.category.name}
+              </span>
+            )}
+            <h1 className="mt-2 text-3xl font-black text-stone-900">{product.name}</h1>
+            {product.brand && <p className="mt-1 text-sm text-stone-500">{product.brand}</p>}
 
-          <button
-            onClick={handleAddToCart}
-            disabled={addingToCart || product.stock === 0}
-            className="mt-5 w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 disabled:opacity-60 transition-colors"
-          >
-            {product.stock === 0 ? 'Out of Stock' : addingToCart ? 'Adding…' : 'Add to Cart'}
-          </button>
+            {avgRating !== null && avgRating > 0 && (
+              <p className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-amber-600">
+                <Star size={16} fill="currentColor" />
+                {avgRating.toFixed(1)}
+              </p>
+            )}
+
+            <p className="mt-5 text-4xl font-black text-[#a85432]">${displayPrice.toFixed(2)}</p>
+
+            {product.description && (
+              <p className="mt-5 text-sm leading-7 text-stone-600">{product.description}</p>
+            )}
+
+            {product.variants && product.variants.length > 0 && (
+              <div className="mt-6">
+                <p className="mb-2 text-sm font-bold text-stone-800">Select variant</p>
+                <div className="flex flex-wrap gap-2">
+                  {product.variants.map((v) => (
+                    <button
+                      key={v.id}
+                      onClick={() => setSelectedVariant(v)}
+                      className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+                        selectedVariant?.id === v.id
+                          ? 'border-[#a85432] bg-[#a85432]/10 text-[#a85432]'
+                          : 'border-stone-300 text-stone-600 hover:border-[#a85432]/50'
+                      }`}
+                    >
+                      {[v.color, v.size].filter(Boolean).join(' / ') || v.sku || v.id.slice(-6)}
+                      {v.price && ` - $${v.price.toFixed(2)}`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <p className="text-sm font-bold text-stone-800">Qty</p>
+              <div className="flex h-11 items-center overflow-hidden rounded-lg border border-stone-300">
+                <button
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  className="grid h-11 w-11 place-items-center text-stone-600 hover:bg-stone-100"
+                  aria-label="Decrease quantity"
+                >
+                  <Minus size={16} />
+                </button>
+                <span className="w-11 text-center text-sm font-bold">{qty}</span>
+                <button
+                  onClick={() => setQty((q) => Math.min(product.stock, q + 1))}
+                  className="grid h-11 w-11 place-items-center text-stone-600 hover:bg-stone-100"
+                  aria-label="Increase quantity"
+                >
+                  <Plus size={16} />
+                </button>
+              </div>
+              <span className="text-xs font-medium text-stone-500">{product.stock} in stock</span>
+            </div>
+
+            {cartMsg && (
+              <p className={`mt-4 inline-flex items-center gap-2 text-sm font-semibold ${isSuccess ? 'text-emerald-700' : 'text-red-600'}`}>
+                {isSuccess && <CheckCircle2 size={16} />}
+                {cartMsg}
+              </p>
+            )}
+
+            <button
+              onClick={handleAddToCart}
+              disabled={addingToCart || product.stock === 0}
+              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#a85432] py-3 font-semibold text-white transition-colors hover:bg-[#8f4328] disabled:opacity-60"
+            >
+              <ShoppingCart size={19} />
+              {product.stock === 0 ? 'Out of stock' : addingToCart ? 'Adding...' : 'Add to cart'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

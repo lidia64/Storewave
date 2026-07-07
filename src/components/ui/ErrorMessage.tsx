@@ -9,7 +9,7 @@ export default function ErrorMessage({ message, onRetry }: Props) {
       {onRetry && (
         <button
           onClick={onRetry}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700"
+          className="px-4 py-2 bg-[#a85432] text-white rounded-lg text-sm hover:bg-[#8f4328]"
         >
           Try again
         </button>
