@@ -10,7 +10,7 @@ A full-featured e-commerce storefront built with **React + Vite + TypeScript + T
 | Layer | Library |
 |---|---|
 | UI | React 19 + TypeScript |
-| Styling | Tailwind CSS v4 (via `@tailwindcss/vite`) |
+| Styling | Tailwind CSS v4 (via @tailwindcss/vite) |
 | Routing | React Router v7 |
 | State | Zustand v5 (with `persist` middleware) |
 | HTTP | Axios (centralized instance with interceptors) |
