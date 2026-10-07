@@ -1,4 +1,4 @@
-Ecomus Storefront
+#Ecomus Storefront
 link: https://storewave-olive.vercel.app
 
 
@@ -17,7 +17,7 @@ A full-featured e-commerce storefront built with **React + Vite + TypeScript + T
 | Build | Vite 8 |
 lu
 
----
+------
 
 ## Features
 
